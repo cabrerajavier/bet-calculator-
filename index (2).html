@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Edge Pocket — Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --felt:#0E3B2E; --felt2:#0A2F24; --panel:#14493A;
+    --line:#2A6A55; --chalk:#F2EFE4; --dim:#B9C9BE;
+    --amber:#FFB63D; --go:#6FDB8F; --stop:#FF7A6B; --hold:#8FB8FF; --r:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--felt2);color:var(--chalk);
+    font-family:'IBM Plex Sans',sans-serif;font-size:16px;}
+  body{min-height:100vh;background:radial-gradient(120% 70% at 50% 0%,var(--felt) 0%,var(--felt2) 80%);}
+  .wrap{max-width:480px;margin:0 auto;padding:14px 14px 92px;}
+  header{display:flex;align-items:baseline;justify-content:space-between;padding:6px 2px 12px;}
+  .brand{font-family:'Barlow Condensed';font-weight:700;font-size:26px;letter-spacing:.06em;}
+  .brand b{color:var(--amber);}
+  .bankchip{font-family:'IBM Plex Mono';font-size:13px;color:var(--dim);border:1px solid var(--line);
+    border-radius:20px;padding:5px 12px;}
+  .bankchip strong{color:var(--amber);}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px;}
+  .lbl{font-family:'Barlow Condensed';font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    font-size:13px;color:var(--dim);margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;}
+  .lbl .q{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);color:var(--amber);
+    font-family:'IBM Plex Mono';font-size:13px;display:flex;align-items:center;justify-content:center;}
+  .row{display:flex;gap:10px;}
+  .row>*{flex:1;}
+  input[type=text],input[type=number]{width:100%;background:var(--felt2);color:var(--chalk);
+    border:1px solid var(--line);border-radius:10px;padding:13px 12px;
+    font-family:'IBM Plex Mono';font-size:18px;font-weight:600;outline:none;}
+  input:focus{border-color:var(--amber);}
+  input::placeholder{color:#5d7a6c;font-weight:400;}
+  .hint{font-family:'IBM Plex Mono';font-size:11.5px;color:#7a9d88;min-height:15px;margin-top:4px;padding-left:2px;}
+  .seg{display:flex;background:var(--felt2);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .seg button{flex:1;background:transparent;border:0;color:var(--dim);padding:12px 4px;
+    font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:.08em;}
+  .seg button.on{background:var(--amber);color:#2a2410;}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .chips button{background:var(--felt2);border:1px solid var(--line);color:var(--dim);
+    border-radius:10px;padding:11px 14px;font-family:'IBM Plex Mono';font-weight:600;font-size:15px;}
+  .chips button.on{border-color:var(--amber);color:var(--amber);}
+  /* the board */
+  .board{border-radius:var(--r);border:1px solid var(--line);overflow:hidden;margin-bottom:12px;}
+  .board .top{display:flex;justify-content:space-between;padding:10px 14px;background:var(--felt2);
+    border-bottom:1px solid var(--line);font-family:'Barlow Condensed';font-weight:700;
+    letter-spacing:.14em;font-size:14px;color:var(--dim);}
+  .fairline{padding:12px 14px;text-align:center;border-bottom:1px solid var(--line);}
+  .fairline .k{font-family:'Barlow Condensed';letter-spacing:.12em;font-size:12px;color:var(--dim);text-transform:uppercase;}
+  .fairline .v{font-family:'IBM Plex Mono';font-weight:700;font-size:34px;color:var(--amber);
+    text-shadow:0 0 14px rgba(255,182,61,.25);}
+  .lane{display:grid;grid-template-columns:86px 1fr 1fr 76px;align-items:center;padding:11px 14px;gap:6px;}
+  .lane+.lane{border-top:1px solid var(--line);}
+  .lane.reco{background:rgba(111,219,143,.08);}
+  .lane .t{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.08em;font-size:15px;}
+  .lane .n{font-family:'IBM Plex Mono';font-size:13px;color:var(--dim);}
+  .lane .n b{color:var(--chalk);font-size:15px;}
+  .lane .vd{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em;font-size:16px;text-align:right;}
+  .vd.go{color:var(--go);} .vd.stop{color:var(--stop);} .vd.idle{color:var(--dim);}
+  .stake{display:flex;justify-content:space-between;padding:11px 14px;border-top:1px solid var(--line);
+    font-family:'IBM Plex Mono';font-size:14px;}
+  .stake b{color:var(--go);}
+  .plan{padding:10px 14px;border-top:1px solid var(--line);font-size:13.5px;color:var(--dim);line-height:1.5;}
+  .plan b{color:var(--amber);}
+  .btn{width:100%;border:0;border-radius:12px;padding:15px;font-family:'Barlow Condensed';
+    font-weight:700;font-size:19px;letter-spacing:.1em;cursor:pointer;}
+  .btn.amber{background:var(--amber);color:#2a2410;}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--dim);}
+  .btn:disabled{opacity:.4;}
+  .explain{background:rgba(255,182,61,.07);border:1px solid var(--amber);border-radius:var(--r);
+    padding:14px;margin-bottom:12px;font-size:14px;line-height:1.6;color:var(--chalk);}
+  .explain b{color:var(--amber);}
+  /* log */
+  .bet{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:10px;}
+  .bet .top{display:flex;justify-content:space-between;gap:8px;}
+  .bet .name{font-weight:600;font-size:15px;}
+  .bet .meta{font-family:'IBM Plex Mono';font-size:12.5px;color:var(--dim);margin-top:4px;}
+  .bet .meta b{color:var(--amber);}
+  .pill{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.08em;border-radius:8px;
+    padding:3px 9px;font-size:13px;align-self:flex-start;}
+  .pill.open{background:rgba(143,184,255,.15);color:var(--hold);}
+  .pill.win{background:rgba(111,219,143,.15);color:var(--go);}
+  .pill.loss{background:rgba(255,122,107,.14);color:var(--stop);}
+  .pill.push{background:rgba(185,201,190,.15);color:var(--dim);}
+  .bet .acts{display:flex;gap:8px;margin-top:10px;}
+  .bet .acts button{flex:1;background:var(--felt2);border:1px solid var(--line);color:var(--chalk);
+    border-radius:9px;padding:9px 4px;font-family:'Barlow Condensed';font-weight:700;font-size:14px;}
+  .bet .acts button.w{color:var(--go);} .bet .acts button.l{color:var(--stop);}
+  .bet .clvrow{display:flex;gap:8px;margin-top:8px;align-items:center;}
+  .bet .clvrow input{padding:9px 10px;font-size:15px;}
+  .bet .clvrow .clvout{font-family:'IBM Plex Mono';font-size:13px;white-space:nowrap;color:var(--dim);}
+  /* stats */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px;text-align:center;}
+  .stat .k{font-family:'Barlow Condensed';letter-spacing:.12em;font-size:12px;color:var(--dim);text-transform:uppercase;}
+  .stat .v{font-family:'IBM Plex Mono';font-weight:700;font-size:24px;margin-top:3px;}
+  .stat .v.amber{color:var(--amber);} .stat .v.go{color:var(--go);} .stat .v.stop{color:var(--stop);}
+  .note{font-size:13.5px;color:var(--dim);line-height:1.5;padding:2px 4px;}
+  nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,47,36,.96);backdrop-filter:blur(8px);
+    border-top:1px solid var(--line);display:flex;max-width:480px;margin:0 auto;}
+  nav button{flex:1;background:transparent;border:0;color:var(--dim);padding:13px 4px 16px;
+    font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:.12em;}
+  nav button.on{color:var(--amber);}
+  .hide{display:none;}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:78px;background:var(--amber);
+    color:#2a2410;font-family:'Barlow Condensed';font-weight:700;padding:9px 18px;border-radius:20px;
+    opacity:0;transition:opacity .25s;pointer-events:none;font-size:15px;}
+  .toast.show{opacity:1;}
+  .empty{text-align:center;color:var(--dim);padding:36px 20px;line-height:1.6;}
+  .empty .big{font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:.08em;color:var(--chalk);}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">EDGE<b>POCKET</b></div>
+    <div class="bankchip">BANK <strong id="bankTxt">$50</strong></div>
+  </header>
+
+  <!-- ================= CALC ================= -->
+  <section id="tab-calc">
+    <div class="card">
+      <p class="lbl">Market type</p>
+      <div class="seg" id="modeSeg">
+        <button class="on" data-m="2">2-WAY</button>
+        <button data-m="3">3-WAY</button>
+        <button data-m="P">PARLAY</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="lbl">Pinnacle odds — type EITHER format (1.854 or -117)</p>
+      <div class="row hide2" id="oddsRow2">
+        <div><input type="text" id="oA" inputmode="decimal" placeholder="Side A"><div class="hint" id="hA"></div></div>
+        <div><input type="text" id="oB" inputmode="decimal" placeholder="Side B"><div class="hint" id="hB"></div></div>
+      </div>
+      <div class="row hide" id="oddsRow3">
+        <div><input type="text" id="oH" inputmode="decimal" placeholder="Home"><div class="hint" id="hH"></div></div>
+        <div><input type="text" id="oD" inputmode="decimal" placeholder="Draw"><div class="hint" id="hD"></div></div>
+        <div><input type="text" id="oW" inputmode="decimal" placeholder="Away"><div class="hint" id="hW"></div></div>
+      </div>
+      <div class="hide" id="parlayBox">
+        <div id="legsBox"></div>
+        <div class="row" style="margin-top:2px;">
+          <button class="btn ghost" id="addLeg" style="padding:10px;font-size:15px;">+ ADD LEG</button>
+          <button class="btn ghost" id="delLeg" style="padding:10px;font-size:15px;">&minus; REMOVE LEG</button>
+        </div>
+        <label style="display:flex;gap:10px;align-items:center;margin-top:12px;font-size:13.5px;color:var(--dim);">
+          <input type="checkbox" id="indep" style="width:20px;height:20px;accent-color:var(--amber);">
+          All legs are from DIFFERENT games (independent)
+        </label>
+      </div>
+      <p class="lbl" style="margin-top:12px;" id="sideLbl">Your side</p>
+      <div class="chips" id="sideChips"></div>
+    </div>
+
+    <div class="card">
+      <p class="lbl"><span>Kalshi order book (both numbers)</span>
+        <span class="q" id="mtHelp">?</span></p>
+      <div class="row">
+        <div><input type="number" id="kBid" inputmode="numeric" placeholder="BID ¢ / %"><div class="hint">= 100 − the No button</div></div>
+        <div><input type="number" id="kAsk" inputmode="numeric" placeholder="ASK ¢ / %"><div class="hint">= the Yes button</div></div>
+      </div>
+    </div>
+
+    <div class="explain hide" id="mtCard">
+      <b>How do I know if I'm Maker or Taker?</b><br>
+      It's not a setting — it's what your order <i>does</i>.<br><br>
+      <b>TAKER</b> = you buy instantly at the ASK. Fast, guaranteed fill, but you pay Kalshi's fee and the worst price.<br><br>
+      <b>MAKER</b> = you post a limit order below the ASK (usually 1¢ above the BID) and wait for someone to sell to you. No fee, better price — but it might never fill. On Kalshi: choose "Limit," set your price, and if it doesn't fill instantly, you were the maker.<br><br>
+      <b>Reading Kalshi mobile (percentages):</b> % and ¢ are the same number — 53% = 53¢. ASK = the Yes button. BID = 100 − the No button. So "Yes 53% / No 48%" means BID 52, ASK 53.<br><br><b>The rule this app follows:</b> try MAKER first. Only take instantly if the TAKER lane below still clears your minimum edge. An unfilled maker order costs $0 — that's a fine outcome.
+    </div>
+
+    <div class="board">
+      <div class="top"><span>THE BOARD</span><span id="spreadTxt">SPREAD —</span></div>
+      <div class="fairline"><div class="k">Fair probability (de-vigged)</div><div class="v" id="vFair">—</div></div>
+      <div class="lane" id="laneM">
+        <span class="t">MAKER</span>
+        <span class="n">rest @ <b id="mPx">—</b></span>
+        <span class="n">edge <b id="mEdge">—</b></span>
+        <span class="vd idle" id="mVd">—</span>
+      </div>
+      <div class="lane" id="laneT">
+        <span class="t">TAKER</span>
+        <span class="n">buy @ <b id="tPx">—</b> <span id="tFee"></span></span>
+        <span class="n">edge <b id="tEdge">—</b></span>
+        <span class="vd idle" id="tVd">—</span>
+      </div>
+      <div class="plan" id="plan">Enter odds + both Kalshi prices. I'll tell you which order to place, at what price, and how big.</div>
+      <div class="stake"><span>Stake (¼-Kelly, 5% cap)</span><b id="vStake">$0.00 · 0 contracts</b></div>
+    </div>
+
+    <button class="btn amber" id="logBtn" disabled>LOG THIS BET</button>
+
+    <div class="card" style="margin-top:12px;">
+      <p class="lbl">Settings</p>
+      <div class="row">
+        <div><p class="lbl" style="font-size:11px;">Bankroll $</p><input type="number" id="setBank" inputmode="decimal" placeholder="50"></div>
+        <div><p class="lbl" style="font-size:11px;">Min edge %</p><input type="number" id="setMin" inputmode="decimal" placeholder="3"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SLATE ================= -->
+  <section id="tab-slate" class="hide">
+    <div class="explain" style="margin-bottom:10px;">
+      <b>Slate triage.</b> Type each game's two Pinnacle odds (decimal or American). The table shows fair prices instantly and flags which games are worth pulling Kalshi bid/ask for. Then open only those in CALC.
+    </div>
+    <div id="slateRows"></div>
+    <div class="row" style="margin-bottom:10px;">
+      <button class="btn ghost" id="addRow" style="padding:11px;font-size:15px;">+ ADD GAME</button>
+      <button class="btn ghost" id="clrRows" style="padding:11px;font-size:15px;">CLEAR ALL</button>
+    </div>
+    <div class="explain" id="slateLegend" style="font-size:12.5px;">
+      <b style="color:var(--go);">GREEN dot</b> = fair price far from a coin-flip or a live dog → more likely to be mispriced on Kalshi, check it. <b style="color:var(--dim);">Grey</b> = near efficient, usually skip. This is a shortlist, not the final call — CALC + Kalshi bid/ask still decides BET/PASS.
+    </div>
+  </section>
+  <!-- ================= LOG ================= -->
+  <section id="tab-log" class="hide">
+    <div id="logList"></div>
+    <div class="empty hide" id="logEmpty">
+      <div class="big">NO BETS ON THE BOOK</div>
+      Run a number on the Calc tab and tap LOG THIS BET.
+    </div>
+    <button class="btn ghost" id="csvBtn">COPY LOG AS CSV (paste into Excel Bet Log)</button>
+    <button class="btn ghost" id="bakBtn">BACKUP — COPY ALL DATA (JSON)</button>
+    <button class="btn ghost" id="resBtn">RESTORE — PASTE A BACKUP</button>
+  </section>
+
+  <!-- ================= STATS ================= -->
+  <section id="tab-stats" class="hide">
+    <div class="grid2">
+      <div class="stat"><div class="k">Settled</div><div class="v" id="sN">0</div></div>
+      <div class="stat"><div class="k">Win rate</div><div class="v" id="sWR">—</div></div>
+      <div class="stat"><div class="k">Net P&amp;L</div><div class="v" id="sPL">$0.00</div></div>
+      <div class="stat"><div class="k">ROI</div><div class="v" id="sROI">—</div></div>
+      <div class="stat"><div class="k">Avg CLV ¢</div><div class="v amber" id="sCLV">—</div></div>
+      <div class="stat"><div class="k">CLV sample</div><div class="v" id="sCLVn">0</div></div>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <p class="lbl">Report card</p>
+      <p class="note" id="sVerdict"></p>
+    </div>
+  </section>
+</div>
+
+<nav>
+  <button data-t="slate">SLATE</button>
+  <button class="on" data-t="calc">CALC</button>
+  <button data-t="log">LOG <span id="openCt"></span></button>
+  <button data-t="stats">STATS</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- state & persistence ---------- */
+const KEY='edgepocket:v2';
+let S={bets:[],bank:50,minEdge:3};
+let mem=null;
+const store={
+  async get(k){
+    try{ if(window.storage){ const r=await window.storage.get(k); if(r&&r.value) return r.value; } }catch(e){}
+    try{ const v=localStorage.getItem(k); if(v) return v; }catch(e){}
+    return null;
+  },
+  async set(k,v){
+    let saved=false;
+    try{ if(window.storage){ await window.storage.set(k,v); saved=true; } }catch(e){}
+    try{ localStorage.setItem(k,v); saved=true; }catch(e){}
+    return saved;
+  }
+};
+async function load(){
+  const v=await store.get(KEY);
+  if(v){ try{ S=JSON.parse(v); }catch(e){} }
+  else if(mem) S=mem;
+  document.getElementById('setBank').value=S.bank;
+  document.getElementById('setMin').value=S.minEdge;
+  renderAll();
+}
+async function save(){
+  mem=JSON.parse(JSON.stringify(S));
+  const ok=await store.set(KEY,JSON.stringify(S));
+  if(!ok) document.title='Edge Pocket (UNSAVED — use Backup!)';
+}
+
+/* ---------- odds parsing: auto-detect decimal vs American ---------- */
+function parseSmart(s){
+  if(!s) return null;
+  const raw=String(s).trim();
+  let num=parseFloat(raw.replace(/[^0-9.\-+]/g,''));
+  if(isNaN(num)||num===0) return null;
+  // trailing minus like "117-"
+  if(/\-\s*$/.test(raw) && num>0) num=-num;
+  let dec, shown;
+  if(Math.abs(num)>=100){                 // American
+    dec = num>0 ? 1+num/100 : 1+100/Math.abs(num);
+    shown = 'US '+(num>0?'+':'')+num+'  =  dec '+dec.toFixed(3);
+  } else if(num>1){                       // Decimal
+    dec = num;
+    const us = dec>=2 ? '+'+Math.round((dec-1)*100) : '-'+Math.round(100/(dec-1));
+    shown = 'dec '+dec.toFixed(3)+'  =  US '+us;
+  } else return null;
+  return {dec, shown};
+}
+function hookOdds(id,hintId){
+  const el=document.getElementById(id);
+  el.addEventListener('input',()=>{
+    const p=parseSmart(el.value);
+    document.getElementById(hintId).textContent=p?p.shown:(el.value?'?':'');
+    compute();
+  });
+}
+
+/* ---------- math ---------- */
+const takerFee=p=>0.07*p*(1-p);
+let mode='2', side=0;
+let legs=[{a:'',b:'',s:0},{a:'',b:'',s:0}];
+function legFair(l){
+  const A=parseSmart(l.a), B=parseSmart(l.b);
+  if(!A||!B) return null;
+  const iA=1/A.dec, iB=1/B.dec, s=iA+iB;
+  return (l.s===0?iA:iB)/s;
+}
+function renderLegs(){
+  const box=document.getElementById('legsBox'); box.innerHTML='';
+  legs.forEach((l,i)=>{
+    const f=legFair(l);
+    const d=document.createElement('div');
+    d.className='card'; d.style.cssText='padding:10px;margin-bottom:8px;background:var(--felt2);';
+    d.innerHTML=`<p class="lbl" style="font-size:11px;">LEG ${i+1} — Pinnacle odds (either format)</p>
+      <div class="row">
+        <input type="text" inputmode="decimal" placeholder="Side A" value="${l.a}" data-i="${i}" data-f="a">
+        <input type="text" inputmode="decimal" placeholder="Side B" value="${l.b}" data-i="${i}" data-f="b">
+      </div>
+      <div class="chips" style="margin-top:8px;">
+        <button data-i="${i}" data-s="0" class="${l.s===0?'on':''}">SIDE A</button>
+        <button data-i="${i}" data-s="1" class="${l.s===1?'on':''}">SIDE B</button>
+        <span class="hint" style="align-self:center;">${f?('fair '+(100*f).toFixed(1)+'%'):''}</span>
+      </div>`;
+    box.appendChild(d);
+  });
+  box.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{
+    legs[+e.target.dataset.i][e.target.dataset.f]=e.target.value;
+    const l=legs[+e.target.dataset.i], f=legFair(l);
+    e.target.closest('.card').querySelector('.hint').textContent=f?('fair '+(100*f).toFixed(1)+'%'):'';
+    compute();
+  }));
+  box.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{
+    legs[+b.dataset.i].s=+b.dataset.s; renderLegs(); compute();
+  });
+}
+function fairProbs(){
+  if(mode==='P'){
+    let prod=1;
+    for(const l of legs){ const f=legFair(l); if(f==null) return null; prod*=f; }
+    return [prod];
+  }
+  const ids = mode==='2'?['oA','oB']:['oH','oD','oW'];
+  const decs=[];
+  for(const id of ids){
+    const p=parseSmart(document.getElementById(id).value);
+    if(!p) return null; decs.push(p.dec);
+  }
+  const imps=decs.map(d=>1/d), s=imps.reduce((a,b)=>a+b,0);
+  return imps.map(x=>x/s);
+}
+function laneCalc(p, priceC, isTaker){
+  const pr=priceC/100;
+  const fee=isTaker?takerFee(pr):0;
+  const cost=pr+fee;
+  const edge=(p-cost)/cost;
+  const fstar=Math.max(0,(p-cost)/(1-cost));
+  const stake=Math.min(fstar*0.25*S.bank, 0.05*S.bank);
+  return {price:priceC,fee,cost,edge,stake,contracts:Math.floor(stake/cost)};
+}
+let current=null; // recommended play for logging
+function compute(){
+  const probs=fairProbs();
+  const bid=+document.getElementById('kBid').value, ask=+document.getElementById('kAsk').value;
+  const q=id=>document.getElementById(id);
+  const reset=()=>{ q('vFair').textContent=probs?(100*probs[side]).toFixed(1)+'%':'—';
+    ['mPx','mEdge','tPx','tEdge'].forEach(i=>q(i).textContent='—');
+    q('tFee').textContent=''; q('spreadTxt').textContent='SPREAD —';
+    q('mVd').textContent=q('tVd').textContent='—'; q('mVd').className=q('tVd').className='vd idle';
+    q('laneM').classList.remove('reco'); q('laneT').classList.remove('reco');
+    q('plan').textContent='Enter odds + both Kalshi prices. I\'ll tell you which order to place, at what price, and how big.';
+    q('vStake').textContent='$0.00 · 0 contracts'; q('logBtn').disabled=true; current=null; };
+  if(!probs||!bid||!ask||bid<1||ask>99||ask<=0){ reset(); return; }
+  if(ask<bid){ reset(); q('plan').textContent='Ask is below bid — double-check the two prices.'; return; }
+  const minReq = mode==='P' ? Math.max(2*S.minEdge,6) : S.minEdge;
+  if(mode==='P' && !document.getElementById('indep').checked){
+    reset(); q('vFair').textContent=(100*probs[0]).toFixed(1)+'%';
+    q('plan').innerHTML='<b>BLOCKED.</b> Confirm every leg is from a DIFFERENT game. Same-game legs are correlated — multiplying their probabilities is wrong math, and it is exactly the mistake parlay pricing feeds on.';
+    return;
+  }
+  const p=probs[side];
+  q('vFair').textContent=(100*p).toFixed(1)+'%';
+  q('spreadTxt').textContent='SPREAD '+(ask-bid)+'¢';
+  const makerPx = (bid+1<ask)?bid+1:bid;          // improve the bid, or join it if spread is 1¢
+  const M=laneCalc(p,makerPx,false), T=laneCalc(p,ask,true);
+  q('mPx').textContent=makerPx+'¢'; q('mEdge').textContent=(100*M.edge).toFixed(1)+'%';
+  q('tPx').textContent=ask+'¢'; q('tEdge').textContent=(100*T.edge).toFixed(1)+'%';
+  q('tFee').textContent='(+'+(T.fee*100).toFixed(1)+'¢ fee)';
+  const okM=100*M.edge>=minReq&&M.contracts>=1, okT=100*T.edge>=minReq&&T.contracts>=1;
+  q('mVd').textContent=okM?'BET':'PASS'; q('mVd').className='vd '+(okM?'go':'stop');
+  q('tVd').textContent=okT?'BET':'PASS'; q('tVd').className='vd '+(okT?'go':'stop');
+  q('laneM').classList.toggle('reco',okM); q('laneT').classList.toggle('reco',!okM&&okT);
+  if(okM){
+    current={type:'Maker',...M};
+    q('plan').innerHTML='<b>PLAY: MAKER.</b> On Kalshi place a <b>Limit</b> order at <b>'+makerPx+'¢</b> for <b>'+M.contracts+' contracts</b>. No fee. If it never fills, that\'s a $0 loss — do not chase it to the ask'+(okT?' (though taker also clears here if the game is about to lock)':'')+'.';
+  } else if(okT){
+    current={type:'Taker',...T};
+    q('plan').innerHTML='<b>PLAY: TAKER.</b> Maker price doesn\'t clear your minimum, but buying instantly at <b>'+ask+'¢</b> still does, even after the '+(T.fee*100).toFixed(1)+'¢ fee. Buy <b>'+T.contracts+' contracts</b> at the ask.';
+  } else {
+    current=null;
+    q('plan').innerHTML='<b>PLAY: PASS.</b> Neither lane clears the '+minReq+'% minimum'+(mode==='P'?' (parlays require double your normal edge — glue costs)':'')+'. Walking away is a winning move — the fair price says this market is not mispriced.';
+  }
+  const c=current;
+  q('vStake').textContent=c?('$'+c.stake.toFixed(2)+' · '+c.contracts+' contracts @ '+c.price+'¢'):'$0.00 · 0 contracts';
+  q('logBtn').disabled=!c;
+}
+
+/* ---------- UI wiring ---------- */
+function drawSideChips(){
+  const names=mode==='2'?['SIDE A','SIDE B']:['HOME','DRAW','AWAY'];
+  const el=document.getElementById('sideChips'); el.innerHTML='';
+  names.forEach((n,i)=>{const b=document.createElement('button'); b.textContent=n;
+    if(i===side)b.classList.add('on');
+    b.onclick=()=>{side=i;drawSideChips();compute();}; el.appendChild(b);});
+}
+document.getElementById('modeSeg').onclick=e=>{
+  if(!e.target.dataset.m)return; mode=e.target.dataset.m; side=0;
+  [...e.currentTarget.children].forEach(b=>b.classList.toggle('on',b===e.target));
+  document.getElementById('oddsRow2').classList.toggle('hide',mode!=='2');
+  document.getElementById('oddsRow3').classList.toggle('hide',mode!=='3');
+  document.getElementById('parlayBox').classList.toggle('hide',mode!=='P');
+  document.getElementById('sideLbl').classList.toggle('hide',mode==='P');
+  document.getElementById('sideChips').classList.toggle('hide',mode==='P');
+  if(mode==='P') renderLegs();
+  drawSideChips(); compute();
+};
+document.getElementById('addLeg').onclick=()=>{ if(legs.length<6){legs.push({a:'',b:'',s:0}); renderLegs(); compute();} };
+document.getElementById('delLeg').onclick=()=>{ if(legs.length>2){legs.pop(); renderLegs(); compute();} };
+document.getElementById('indep').onchange=compute;
+document.getElementById('mtHelp').onclick=()=>document.getElementById('mtCard').classList.toggle('hide');
+hookOdds('oA','hA');hookOdds('oB','hB');hookOdds('oH','hH');hookOdds('oD','hD');hookOdds('oW','hW');
+['kBid','kAsk'].forEach(id=>document.getElementById(id).addEventListener('input',compute));
+document.getElementById('setBank').addEventListener('change',e=>{
+  const v=parseFloat(e.target.value);
+  if(v>0){S.bank=v;save();renderAll();} else e.target.value=S.bank;
+});
+document.getElementById('setMin').addEventListener('change',e=>{
+  const v=parseFloat(e.target.value);
+  if(v>=0){S.minEdge=v;save();compute();} else e.target.value=S.minEdge;
+});
+
+/* ---------- log ---------- */
+document.getElementById('logBtn').onclick=async()=>{
+  if(!current)return;
+  const name=prompt('Market name (e.g. "SEA ML vs HOU"):','');
+  if(name===null)return;
+  const probs=fairProbs();
+  S.bets.unshift({id:Date.now(),date:new Date().toISOString().slice(0,10),name:name||'(unnamed)',
+    mode,side:mode==='P'?('Combo x'+legs.length):(mode==='2'?['A','B']:['Home','Draw','Away'])[side],order:current.type,
+    fair:+(100*probs[side]).toFixed(1),price:current.price,stake:+current.stake.toFixed(2),
+    contracts:current.contracts,fee:+(current.fee*current.contracts).toFixed(2),close:null,result:'Open'});
+  await save(); renderAll(); toast(current.type==='Maker'?'LOGGED — REST YOUR LIMIT ORDER':'LOGGED — BUY AT THE ASK');
+};
+function setResult(id,res){const b=S.bets.find(x=>x.id===id);if(!b)return;b.result=res;save();renderAll();}
+function setClose(id,v){const b=S.bets.find(x=>x.id===id);if(!b)return;b.close=v===''?null:+v;save();renderLogOnly();}
+function betPL(b){
+  if(b.result==='Win')return b.contracts-(b.contracts*b.price/100+b.fee);
+  if(b.result==='Loss')return -(b.contracts*b.price/100+b.fee);
+  if(b.result==='Push')return 0;
+  return null;
+}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function renderLogOnly(){
+  const list=document.getElementById('logList'); list.innerHTML='';
+  document.getElementById('logEmpty').classList.toggle('hide',S.bets.length>0);
+  S.bets.forEach(b=>{
+    const d=document.createElement('div'); d.className='bet';
+    const clv=b.close!=null?(b.close-b.price):null;
+    const pl=betPL(b);
+    d.innerHTML=`
+      <div class="top"><div class="name">${esc(b.name)}</div>
+        <span class="pill ${b.result.toLowerCase()}">${b.result.toUpperCase()}</span></div>
+      <div class="meta">${b.date} · ${b.side} @ <b>${b.price}¢</b> · ${b.order} · ${b.contracts} ct · $${b.stake.toFixed(2)}
+        · fair <b>${b.fair}%</b>${pl!=null?` · P&L <b>${pl>=0?'+':''}$${pl.toFixed(2)}</b>`:''}</div>
+      <div class="clvrow">
+        <input type="number" inputmode="numeric" placeholder="Close ¢" value="${b.close??''}"
+          onchange="setClose(${b.id},this.value)">
+        <span class="clvout">${clv!=null?('CLV '+(clv>=0?'+':'')+clv+'¢'):'CLV —'}</span>
+      </div>
+      ${b.result==='Open'?`<div class="acts">
+        <button class="w" onclick="setResult(${b.id},'Win')">WIN</button>
+        <button class="l" onclick="setResult(${b.id},'Loss')">LOSS</button>
+        <button onclick="setResult(${b.id},'Push')">PUSH</button>
+      </div>`:''}`;
+    list.appendChild(d);
+  });
+  const open=S.bets.filter(b=>b.result==='Open').length;
+  document.getElementById('openCt').textContent=open?('('+open+')'):'';
+}
+
+/* ---------- stats ---------- */
+function renderStats(){
+  const settled=S.bets.filter(b=>['Win','Loss'].includes(b.result));
+  const wins=settled.filter(b=>b.result==='Win').length;
+  const staked=settled.reduce((a,b)=>a+b.contracts*b.price/100+b.fee,0);
+  const pl=settled.reduce((a,b)=>a+betPL(b),0);
+  const clvs=S.bets.filter(b=>b.close!=null).map(b=>b.close-b.price);
+  const avgClv=clvs.length?clvs.reduce((a,b)=>a+b,0)/clvs.length:null;
+  document.getElementById('sN').textContent=settled.length;
+  document.getElementById('sWR').textContent=settled.length?(100*wins/settled.length).toFixed(0)+'%':'—';
+  const plEl=document.getElementById('sPL');
+  plEl.textContent=(pl>=0?'+$':'-$')+Math.abs(pl).toFixed(2);
+  plEl.className='v '+(pl>0?'go':pl<0?'stop':'');
+  document.getElementById('sROI').textContent=staked?(100*pl/staked).toFixed(1)+'%':'—';
+  document.getElementById('sCLV').textContent=avgClv!=null?((avgClv>=0?'+':'')+avgClv.toFixed(2)):'—';
+  document.getElementById('sCLVn').textContent=clvs.length;
+  const v=document.getElementById('sVerdict');
+  if(clvs.length>=300){
+    v.textContent=avgClv>0.5
+      ?'Average CLV is clearly positive over 300+ bets — statistically real skill. Green light to grow the bankroll from income.'
+      :'CLV is flat/negative over 300+ bets — the market is beating you in these spots. Stay tiny and change the hunting ground.';
+  }else{
+    v.textContent=`Report card unlocks at 300 close-prices logged (${clvs.length}/300). Until then, ignore P&L swings — record entries and closes.`;
+  }
+}
+
+/* ---------- CSV ---------- */
+document.getElementById('csvBtn').onclick=async()=>{
+  const rows=[['Date','Category','Market','Side','Order Type','Entry Price (c)','Contracts','Fee ($)','Model/Devig Prob','Result','Close Price (c)']];
+  S.bets.slice().reverse().forEach(b=>rows.push([b.date,b.mode==='P'?'PARLAY':(b.mode==='2'?'MLB':'World Cup'),b.name,b.side,b.order,b.price,b.contracts,b.fee,(b.fair/100).toFixed(3),b.result==='Open'?'':b.result,b.close??'']));
+  const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  try{await navigator.clipboard.writeText(csv);toast('CSV COPIED — PASTE INTO BET LOG');}
+  catch(e){prompt('Copy this CSV:',csv);}
+};
+
+document.getElementById('bakBtn').onclick=async()=>{
+  const j=JSON.stringify(S);
+  try{await navigator.clipboard.writeText(j);toast('BACKUP COPIED — SAVE IT IN NOTES');}
+  catch(e){prompt('Copy this backup:',j);}
+};
+document.getElementById('resBtn').onclick=async()=>{
+  const j=prompt('Paste your backup JSON:','');
+  if(!j)return;
+  try{const d=JSON.parse(j);
+    if(!Array.isArray(d.bets)) throw 0;
+    S=d; await save(); renderAll(); toast('RESTORED '+S.bets.length+' BETS');}
+  catch(e){toast('THAT DIDN\'T LOOK LIKE A BACKUP');}
+};
+
+/* ---------- tabs & toast ---------- */
+document.querySelector('nav').onclick=e=>{
+  if(!e.target.dataset.t)return;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===e.target));
+  ['slate','calc','log','stats'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hide',t!==e.target.dataset.t));
+  renderAll();
+};
+let toastT;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1900);}
+function renderAll(){document.getElementById('bankTxt').textContent='$'+S.bank;renderLogOnly();renderStats();compute();}
+/* ---------- SLATE ---------- */
+let slate=[{away:'',home:'',oa:'',ob:''}];
+async function loadSlate(){ try{const r=await store.get('edgepocket:slate'); if(r) slate=JSON.parse(r);}catch(e){} renderSlate(); }
+async function saveSlate(){ try{await store.set('edgepocket:slate',JSON.stringify(slate));}catch(e){} }
+function slateFair(row){
+  const A=parseSmart(row.oa), B=parseSmart(row.ob);
+  if(!A||!B) return null;
+  const iA=1/A.dec, iB=1/B.dec, s=iA+iB;
+  return {pa:iA/s, pb:iB/s};
+}
+function slateFlag(f){
+  if(!f) return {dot:'#3a5a4c', worth:false};
+  // worth checking if either side is a meaningful dog (fair <= 45%) or line is lopsided (>=60%)
+  const lo=Math.min(f.pa,f.pb);
+  const worth = lo<=0.45;
+  return {dot: worth?'#6FDB8F':'#3a5a4c', worth};
+}
+function renderSlate(){
+  const box=document.getElementById('slateRows'); box.innerHTML='';
+  slate.forEach((row,i)=>{
+    const f=slateFair(row); const fl=slateFlag(f);
+    const d=document.createElement('div');
+    d.className='card'; d.style.cssText='padding:11px;margin-bottom:8px;';
+    d.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="width:11px;height:11px;border-radius:50%;background:${fl.dot};flex:none;box-shadow:0 0 8px ${fl.dot}66;"></span>
+        <input type="text" placeholder="Away/Team A" value="${row.away}" data-i="${i}" data-f="away"
+          style="flex:1;padding:9px 10px;font-size:14px;font-family:'IBM Plex Sans';">
+        <span style="color:var(--dim);font-size:12px;">@</span>
+        <input type="text" placeholder="Home/Team B" value="${row.home}" data-i="${i}" data-f="home"
+          style="flex:1;padding:9px 10px;font-size:14px;font-family:'IBM Plex Sans';">
+        <button data-del="${i}" style="background:transparent;border:1px solid var(--line);color:var(--stop);border-radius:8px;width:34px;height:34px;font-size:18px;flex:none;">&times;</button>
+      </div>
+      <div class="row">
+        <div><input type="text" placeholder="Pinn A" value="${row.oa}" data-i="${i}" data-f="oa" inputmode="decimal">
+          <div class="hint" style="text-align:center;">${f?('fair '+(100*f.pa).toFixed(1)+'%'):''}</div></div>
+        <div><input type="text" placeholder="Pinn B" value="${row.ob}" data-i="${i}" data-f="ob" inputmode="decimal">
+          <div class="hint" style="text-align:center;">${f?('fair '+(100*f.pb).toFixed(1)+'%'):''}</div></div>
+      </div>
+      ${fl.worth?'<div class="hint" style="color:var(--go);text-align:center;margin-top:6px;">✓ WORTH CHECKING — pull Kalshi bid/ask, run in CALC</div>':(f?'<div class="hint" style="text-align:center;margin-top:6px;">near efficient — usually skip</div>':'')}`;
+    box.appendChild(d);
+  });
+  box.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{
+    slate[+e.target.dataset.i][e.target.dataset.f]=e.target.value; saveSlate();
+    // live-update just the hints for this row without full rerender (keeps focus)
+    const i=+e.target.dataset.i, f=slateFair(slate[i]), fl=slateFlag(f);
+    const card=e.target.closest('.card');
+    const hints=card.querySelectorAll('.hint');
+    if(card.querySelectorAll('input')[2]&&f){ // has odds
+      const oaHint=card.querySelector('[data-f="oa"]').parentElement.querySelector('.hint');
+      const obHint=card.querySelector('[data-f="ob"]').parentElement.querySelector('.hint');
+      if(oaHint) oaHint.textContent=f?('fair '+(100*f.pa).toFixed(1)+'%'):'';
+      if(obHint) obHint.textContent=f?('fair '+(100*f.pb).toFixed(1)+'%'):'';
+    }
+    const dot=card.querySelector('span[style*="border-radius:50%"]');
+    if(dot){ dot.style.background=fl.dot; dot.style.boxShadow='0 0 8px '+fl.dot+'66'; }
+    // update worth line
+    let wl=card.querySelector('.worthline');
+  }));
+  box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    slate.splice(+b.dataset.del,1); if(!slate.length) slate=[{away:'',home:'',oa:'',ob:''}]; saveSlate(); renderSlate();
+  });
+}
+document.getElementById('addRow').onclick=()=>{ slate.push({away:'',home:'',oa:'',ob:''}); saveSlate(); renderSlate(); };
+document.getElementById('clrRows').onclick=()=>{ if(confirm('Clear the whole slate?')){ slate=[{away:'',home:'',oa:'',ob:''}]; saveSlate(); renderSlate(); } };
+
+window.setResult=setResult;window.setClose=setClose;
+drawSideChips();load();loadSlate();
+</script>
+</body>
+</html>
